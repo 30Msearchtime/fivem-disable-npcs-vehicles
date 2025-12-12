@@ -1,13 +1,13 @@
 Config = {}
 
--- Deaktiviere NPCs (Peds)
+-- Disable NPCs (Peds)
 Config.DisableNPCs = true
 
--- Deaktiviere Fahrzeuge
+-- Disable Vehicles
 Config.DisableVehicles = true
 
--- Deaktiviere zufällige Szenario-Peds (z.B. Leute die telefonieren, sitzen etc.)
+-- Disable random scenario peds (e.g. people on phones, sitting, etc.)
 Config.DisableScenarioPeds = true
 
--- Deaktiviere Parked Vehicles
+-- Disable Parked Vehicles
 Config.DisableParkedVehicles = true

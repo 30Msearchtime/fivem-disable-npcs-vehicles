@@ -1,43 +1,43 @@
--- Haupt-Thread zum Deaktivieren von NPCs und Fahrzeugen
+-- Main thread to disable NPCs and vehicles
 CreateThread(function()
     while true do
         Wait(0)
         
-        -- Deaktiviere NPCs/Peds
+        -- Disable NPCs/Peds
         if Config.DisableNPCs then
             SetPedDensityMultiplierThisFrame(0.0)
             SetScenarioPedDensityMultiplierThisFrame(0.0, 0.0)
         end
         
-        -- Deaktiviere Fahrzeuge
+        -- Disable Vehicles
         if Config.DisableVehicles then
             SetVehicleDensityMultiplierThisFrame(0.0)
             SetRandomVehicleDensityMultiplierThisFrame(0.0)
             SetParkedVehicleDensityMultiplierThisFrame(0.0)
         end
         
-        -- Deaktiviere Ambient Peds (zusätzliche Sicherheit)
+        -- Disable Ambient Peds (additional safety)
         if Config.DisableScenarioPeds then
             SetPedDensityMultiplierThisFrame(0.0)
         end
     end
 end)
 
--- Einmalige Konfigurationen beim Script-Start
+-- One-time configurations on script start
 CreateThread(function()
-    -- Dispatch und Services deaktivieren
+    -- Disable dispatch and services
     for i = 1, 15 do
         EnableDispatchService(i, false)
     end
     
-    -- Deaktiviere verschiedene Gameplay-Features
-    SetGarbageTrucks(false) -- Keine Müllwagen
-    SetRandomBoats(false) -- Keine zufälligen Boote
-    SetCreateRandomCops(false) -- Keine zufälligen Polizisten
-    SetCreateRandomCopsNotOnScenarios(false) -- Keine Polizisten außerhalb von Szenarien
-    SetCreateRandomCopsOnScenarios(false) -- Keine Polizisten in Szenarien
+    -- Disable various gameplay features
+    SetGarbageTrucks(false) -- No garbage trucks
+    SetRandomBoats(false) -- No random boats
+    SetCreateRandomCops(false) -- No random cops
+    SetCreateRandomCopsNotOnScenarios(false) -- No cops outside scenarios
+    SetCreateRandomCopsOnScenarios(false) -- No cops in scenarios
     
-    -- Entferne alle existierenden NPCs und Fahrzeuge beim Script-Start
+    -- Remove all existing NPCs and vehicles on script start
     local playerPed = PlayerPedId()
     local coords = GetEntityCoords(playerPed)
     
@@ -48,7 +48,7 @@ CreateThread(function()
     print('^3[Disable NPCs & Vehicles]^7 All NPCs and vehicles have been disabled.')
 end)
 
--- Szenarien-Blocker
+-- Scenario blocker
 CreateThread(function()
     local scenarios = {
         'WORLD_VEHICLE_ATTRACTOR',
@@ -105,16 +105,16 @@ CreateThread(function()
     end
 end)
 
--- Entferne Fahrzeuge und NPCs in regelmäßigen Abständen (Performance-optimiert)
+-- Remove vehicles and NPCs at regular intervals (performance optimized)
 CreateThread(function()
     while true do
-        Wait(10000) -- Alle 10 Sekunden (optimiert)
+        Wait(10000) -- Every 10 seconds (optimized)
         
         if Config.DisableVehicles then
-            -- Entferne alle Fahrzeuge im Umkreis
+            -- Remove all vehicles in the area
             local vehicles = GetGamePool('CVehicle')
             for _, vehicle in ipairs(vehicles) do
-                -- Prüfe ob ein Spieler im Fahrzeug sitzt
+                -- Check if a player is in the vehicle
                 local hasPlayer = false
                 for seat = -1, GetVehicleMaxNumberOfPassengers(vehicle) - 1 do
                     local ped = GetPedInVehicleSeat(vehicle, seat)
@@ -124,7 +124,7 @@ CreateThread(function()
                     end
                 end
                 
-                -- Lösche nur wenn kein Spieler drin ist
+                -- Delete only if no player is inside
                 if not hasPlayer then
                     SetEntityAsMissionEntity(vehicle, true, true)
                     DeleteEntity(vehicle)
@@ -133,7 +133,7 @@ CreateThread(function()
         end
         
         if Config.DisableNPCs then
-            -- Entferne alle NPCs (außer Spieler)
+            -- Remove all NPCs (except players)
             local peds = GetGamePool('CPed')
             for _, ped in ipairs(peds) do
                 if not IsPedAPlayer(ped) and GetPedType(ped) ~= 28 then -- 28 = Player Ped Type
@@ -145,19 +145,19 @@ CreateThread(function()
     end
 end)
 
--- Verhindere Wanted Level und Polizei-Spawns
+-- Prevent wanted level and police spawns
 CreateThread(function()
     while true do
         Wait(0)
         
         if Config.DisableNPCs then
-            -- Setze Wanted Level auf 0
+            -- Set wanted level to 0
             if GetPlayerWantedLevel(PlayerId()) ~= 0 then
                 SetPlayerWantedLevel(PlayerId(), 0, false)
                 SetPlayerWantedLevelNow(PlayerId(), false)
             end
             
-            -- Deaktiviere Polizei-Scanner/Dispatch
+            -- Disable police scanner/dispatch
             SetPlayerWantedLevelNoDrop(PlayerId(), 0, false)
         end
     end
