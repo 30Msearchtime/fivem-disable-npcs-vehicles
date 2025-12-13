@@ -105,6 +105,26 @@ CreateThread(function()
     end
 end)
 
+-- Track player-owned vehicles to prevent deletion
+local playerVehicles = {}
+
+-- Mark vehicle as player-owned when player enters
+CreateThread(function()
+    while true do
+        Wait(1000)
+        local playerPed = PlayerPedId()
+        
+        if IsPedInAnyVehicle(playerPed, false) then
+            local vehicle = GetVehiclePedIsIn(playerPed, false)
+            if vehicle ~= 0 and not playerVehicles[vehicle] then
+                playerVehicles[vehicle] = GetGameTimer()
+                -- Mark as mission entity so it doesn't despawn
+                SetEntityAsMissionEntity(vehicle, true, true)
+            end
+        end
+    end
+end)
+
 -- Remove vehicles and NPCs at regular intervals (performance optimized)
 CreateThread(function()
     while true do
@@ -114,7 +134,7 @@ CreateThread(function()
             -- Remove all vehicles in the area
             local vehicles = GetGamePool('CVehicle')
             for _, vehicle in ipairs(vehicles) do
-                -- Check if a player is in the vehicle
+                -- Check if a player is currently in the vehicle
                 local hasPlayer = false
                 for seat = -1, GetVehicleMaxNumberOfPassengers(vehicle) - 1 do
                     local ped = GetPedInVehicleSeat(vehicle, seat)
@@ -124,9 +144,20 @@ CreateThread(function()
                     end
                 end
                 
-                -- Delete only if no player is inside
-                if not hasPlayer then
-                    SetEntityAsMissionEntity(vehicle, true, true)
+                -- Check if this vehicle was recently used by a player
+                local isPlayerVehicle = false
+                if playerVehicles[vehicle] then
+                    -- Keep vehicle for 5 minutes after last use
+                    if (GetGameTimer() - playerVehicles[vehicle]) < 300000 then
+                        isPlayerVehicle = true
+                    else
+                        -- Remove from tracking after 5 minutes
+                        playerVehicles[vehicle] = nil
+                    end
+                end
+                
+                -- Delete only if: no player inside AND not a player vehicle
+                if not hasPlayer and not isPlayerVehicle then
                     DeleteEntity(vehicle)
                 end
             end
